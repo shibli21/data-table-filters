@@ -32,7 +32,7 @@ import {
 } from "@/components/custom/table";
 import { DataTableFilterControls } from "@/components/data-table/data-table-filter-controls";
 import { DataTableFilterCommand } from "@/components/data-table/data-table-filter-command";
-import { ColumnSchema, BaseChartSchema, columnFilterSchema } from "./schema";
+import { ColumnSchema, BaseChartSchema } from "./schema";
 import type {
   DataTableFilterField,
   SheetField,
@@ -339,7 +339,7 @@ export function DataTableInfinite<TData, TValue, TMeta>({
               "sticky top-0 z-10 pb-4",
             )}
           >
-            <DataTableFilterCommand schema={columnFilterSchema} />
+            <DataTableFilterCommand schema={searchParamsParser} />
             {/* TBD: better flexibility with compound components? */}
             <DataTableToolbar
               renderActions={() => [
