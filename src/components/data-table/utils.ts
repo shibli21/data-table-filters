@@ -8,20 +8,47 @@ import {
   SLIDER_DELIMITER,
 } from "@/lib/delimiters";
 
-export function deserialize<T extends z.AnyZodObject>(schema: T) {
-  const castToSchema = z.preprocess((val) => {
-    if (typeof val !== "string") return val;
-    return val
-      .trim()
-      .split(" ")
-      .reduce((prev, curr) => {
-        const [name, value] = curr.split(":");
-        if (!value || !name) return prev;
-        prev[name] = value;
-        return prev;
-      }, {} as Record<string, unknown>);
-  }, schema);
-  return (value: string) => castToSchema.safeParse(value);
+export type ParserObject = Record<string, { parse: (value: string) => any }>;
+
+export function deserialize<T extends z.AnyZodObject | ParserObject>(schema: T) {
+  if ('parse' in schema) {
+    // It's a Zod schema
+    const castToSchema = z.preprocess((val) => {
+      if (typeof val !== "string") return val;
+      return val
+        .trim()
+        .split(" ")
+        .reduce((prev, curr) => {
+          const [name, value] = curr.split(":");
+          if (!value || !name) return prev;
+          prev[name] = value;
+          return prev;
+        }, {} as Record<string, unknown>);
+    }, schema as z.AnyZodObject);
+    return (value: string) => castToSchema.safeParse(value);
+  } else {
+    // It's a non-Zod parser object (like searchParamsParser)
+    return (value: string) => {
+      const result: Record<string, any> = {};
+      const success = true;
+
+      try {
+        const parsed = value
+          .trim()
+          .split(" ")
+          .reduce((prev, curr) => {
+            const [name, value] = curr.split(":");
+            if (!value || !name || !(name in schema)) return prev;
+            prev[name] = (schema as ParserObject)[name].parse(value);
+            return prev;
+          }, {} as Record<string, any>);
+
+        return { success, data: parsed };
+      } catch (error) {
+        return { success: false, error };
+      }
+    };
+  }
 }
 
 // export function serialize<T extends z.AnyZodObject>(schema: T) {
