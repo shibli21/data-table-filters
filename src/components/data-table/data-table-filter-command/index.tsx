@@ -16,9 +16,8 @@ import { LoaderCircle, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { Kbd } from "@/components/custom/kbd";
-import type { z } from "zod";
 import type { DataTableFilterField } from "../types";
-import { deserialize, serializeColumFilters, type ParserObject } from "../utils";
+import { deserialize, serializeColumFilters } from "../utils";
 import { Separator } from "@/components/ui/separator";
 import {
   getFieldOptions,
@@ -31,14 +30,15 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useHotKey } from "@/hooks/use-hot-key";
 import { useDataTable } from "@/components/data-table/data-table-provider";
 import { formatCompactNumber } from "@/lib/format";
+import type { Parser } from "nuqs";
 
 // FIXME: there is an issue on cmdk if I wanna only set a single slider value...
 
-interface DataTableFilterCommandProps<TSchema extends z.AnyZodObject | ParserObject> {
+interface DataTableFilterCommandProps<TSchema extends Record<string, Parser<any>>> {
   schema: TSchema;
 }
 
-export function DataTableFilterCommand<TSchema extends z.AnyZodObject | ParserObject>({
+export function DataTableFilterCommand<TSchema extends Record<string, Parser<any>>>({
   schema,
 }: DataTableFilterCommandProps<TSchema>) {
   const {

@@ -51,9 +51,6 @@ export const columnSchema = z
 export type ColumnSchema = z.infer<typeof columnSchema>;
 export type TimingSchema = z.infer<typeof timingSchema>;
 
-// Use SearchParamsType from nuqs search-params
-export type ColumnFilterSchema = SearchParamsType;
-
 export const facetMetadataSchema = z.object({
   rows: z.array(z.object({ value: z.any(), total: z.number() })),
   total: z.number(),

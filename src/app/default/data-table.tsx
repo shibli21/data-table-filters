@@ -32,7 +32,6 @@ import {
 import { DataTableFilterControls } from "@/components/data-table/data-table-filter-controls";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableFilterCommand } from "@/components/data-table/data-table-filter-command";
-import { columnFilterSchema } from "./schema";
 import type { DataTableFilterField } from "@/components/data-table/types";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import { cn } from "@/lib/utils";
@@ -139,7 +138,7 @@ export function DataTable<TData, TValue>({
           <DataTableFilterControls />
         </div>
         <div className="flex max-w-full flex-1 flex-col gap-4 overflow-hidden p-1">
-          <DataTableFilterCommand schema={columnFilterSchema} />
+          <DataTableFilterCommand schema={searchParamsParser} />
           <DataTableToolbar />
           <div className="rounded-md border">
             <Table>

@@ -1,54 +1,36 @@
 // TODO: check if we can move to /data-table-filter-command/utils.ts
 import type { ColumnFiltersState } from "@tanstack/react-table";
-import { z } from "zod";
 import type { DataTableFilterField } from "./types";
 import {
   ARRAY_DELIMITER,
   RANGE_DELIMITER,
   SLIDER_DELIMITER,
 } from "@/lib/delimiters";
+import type { Parser } from "nuqs";
 
-export type ParserObject = Record<string, { parse: (value: string) => any }>;
-
-export function deserialize<T extends z.AnyZodObject | ParserObject>(schema: T) {
-  if ('parse' in schema) {
-    // It's a Zod schema
-    const castToSchema = z.preprocess((val) => {
-      if (typeof val !== "string") return val;
-      return val
+export function deserialize<T extends Record<string, Parser<any>>>(schema: T) {
+  return (value: string) => {
+    try {
+      const parsed = value
         .trim()
         .split(" ")
         .reduce((prev, curr) => {
           const [name, value] = curr.split(":");
-          if (!value || !name) return prev;
-          prev[name] = value;
+          if (!value || !name || !(name in schema)) return prev;
+          // Use the parse method from the nuqs Parser
+          const parsedValue = schema[name].parse(value);
+          // Nuqs parsers return the parsed value or null for invalid inputs
+          if (parsedValue !== null) {
+            prev[name] = parsedValue;
+          }
           return prev;
-        }, {} as Record<string, unknown>);
-    }, schema as z.AnyZodObject);
-    return (value: string) => castToSchema.safeParse(value);
-  } else {
-    // It's a non-Zod parser object (like searchParamsParser)
-    return (value: string) => {
-      const result: Record<string, any> = {};
-      const success = true;
+        }, {} as Record<string, any>);
 
-      try {
-        const parsed = value
-          .trim()
-          .split(" ")
-          .reduce((prev, curr) => {
-            const [name, value] = curr.split(":");
-            if (!value || !name || !(name in schema)) return prev;
-            prev[name] = (schema as ParserObject)[name].parse(value);
-            return prev;
-          }, {} as Record<string, any>);
-
-        return { success, data: parsed };
-      } catch (error) {
-        return { success: false, error };
-      }
-    };
-  }
+      return { success: true, data: parsed };
+    } catch (error) {
+      return { success: false, error };
+    }
+  };
 }
 
 // export function serialize<T extends z.AnyZodObject>(schema: T) {
