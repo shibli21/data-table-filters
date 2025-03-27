@@ -16,7 +16,6 @@ import { LoaderCircle, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { Kbd } from "@/components/custom/kbd";
-import type { z } from "zod";
 import type { DataTableFilterField } from "../types";
 import { deserialize, serializeColumFilters } from "../utils";
 import { Separator } from "@/components/ui/separator";
@@ -31,14 +30,15 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useHotKey } from "@/hooks/use-hot-key";
 import { useDataTable } from "@/components/data-table/data-table-provider";
 import { formatCompactNumber } from "@/lib/format";
+import type { Parser } from "nuqs";
 
 // FIXME: there is an issue on cmdk if I wanna only set a single slider value...
 
-interface DataTableFilterCommandProps<TSchema extends z.AnyZodObject> {
+interface DataTableFilterCommandProps<TSchema extends Record<string, Parser<any>>> {
   schema: TSchema;
 }
 
-export function DataTableFilterCommand<TSchema extends z.AnyZodObject>({
+export function DataTableFilterCommand<TSchema extends Record<string, Parser<any>>>({
   schema,
 }: DataTableFilterCommandProps<TSchema>) {
   const {
@@ -93,13 +93,13 @@ export function DataTableFilterCommand<TSchema extends z.AnyZodObject>({
       {} as Record<string, unknown>,
     );
 
-    if (searchParams.success) {
+    if (searchParams.success && searchParams.data) {
       for (const key of Object.keys(searchParams.data)) {
         const value = searchParams.data[key as keyof typeof searchParams.data];
         table.getColumn(key)?.setFilterValue(value);
       }
       const currentFiltersToReset = currentEnabledFilters.filter((filter) => {
-        return !(filter.id in searchParams.data);
+        return !(filter.id in (searchParams.data || {}));
       });
       for (const filter of currentFiltersToReset) {
         table.getColumn(filter.id)?.setFilterValue(undefined);

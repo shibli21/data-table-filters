@@ -7,6 +7,7 @@ import { METHODS } from "@/constants/method";
 import { REGIONS } from "@/constants/region";
 import { z } from "zod";
 import { LEVELS } from "@/constants/levels";
+import { SearchParamsType } from "./search-params";
 
 // https://github.com/colinhacks/zod/issues/2985#issue-2008642190
 const stringToBoolean = z
@@ -49,69 +50,6 @@ export const columnSchema = z
 
 export type ColumnSchema = z.infer<typeof columnSchema>;
 export type TimingSchema = z.infer<typeof timingSchema>;
-
-// TODO: can we get rid of this in favor of nuqs search-params?
-export const columnFilterSchema = z.object({
-  level: z
-    .string()
-    .transform((val) => val.split(ARRAY_DELIMITER))
-    .pipe(z.enum(LEVELS).array())
-    .optional(),
-  method: z
-    .string()
-    .transform((val) => val.split(ARRAY_DELIMITER))
-    .pipe(z.enum(METHODS).array())
-    .optional(),
-  host: z.string().optional(),
-  pathname: z.string().optional(),
-  latency: z
-    .string()
-    .transform((val) => val.split(SLIDER_DELIMITER))
-    .pipe(z.coerce.number().array().max(2))
-    .optional(),
-  "timing.dns": z
-    .string()
-    .transform((val) => val.split(SLIDER_DELIMITER))
-    .pipe(z.coerce.number().array().max(2))
-    .optional(),
-  "timing.connection": z
-    .string()
-    .transform((val) => val.split(SLIDER_DELIMITER))
-    .pipe(z.coerce.number().array().max(2))
-    .optional(),
-  "timing.tls": z
-    .string()
-    .transform((val) => val.split(SLIDER_DELIMITER))
-    .pipe(z.coerce.number().array().max(2))
-    .optional(),
-  "timing.ttfb": z
-    .string()
-    .transform((val) => val.split(SLIDER_DELIMITER))
-    .pipe(z.coerce.number().array().max(2))
-    .optional(),
-  "timing.transfer": z
-    .string()
-    .transform((val) => val.split(SLIDER_DELIMITER))
-    .pipe(z.coerce.number().array().max(2))
-    .optional(),
-  status: z
-    .string()
-    .transform((val) => val.split(ARRAY_DELIMITER))
-    .pipe(z.coerce.number().array())
-    .optional(),
-  regions: z
-    .string()
-    .transform((val) => val.split(ARRAY_DELIMITER))
-    .pipe(z.enum(REGIONS).array())
-    .optional(),
-  date: z
-    .string()
-    .transform((val) => val.split(RANGE_DELIMITER).map(Number))
-    .pipe(z.coerce.date().array())
-    .optional(),
-});
-
-export type ColumnFilterSchema = z.infer<typeof columnFilterSchema>;
 
 export const facetMetadataSchema = z.object({
   rows: z.array(z.object({ value: z.any(), total: z.number() })),

@@ -1,27 +1,36 @@
 // TODO: check if we can move to /data-table-filter-command/utils.ts
 import type { ColumnFiltersState } from "@tanstack/react-table";
-import { z } from "zod";
 import type { DataTableFilterField } from "./types";
 import {
   ARRAY_DELIMITER,
   RANGE_DELIMITER,
   SLIDER_DELIMITER,
 } from "@/lib/delimiters";
+import type { Parser } from "nuqs";
 
-export function deserialize<T extends z.AnyZodObject>(schema: T) {
-  const castToSchema = z.preprocess((val) => {
-    if (typeof val !== "string") return val;
-    return val
-      .trim()
-      .split(" ")
-      .reduce((prev, curr) => {
-        const [name, value] = curr.split(":");
-        if (!value || !name) return prev;
-        prev[name] = value;
-        return prev;
-      }, {} as Record<string, unknown>);
-  }, schema);
-  return (value: string) => castToSchema.safeParse(value);
+export function deserialize<T extends Record<string, Parser<any>>>(schema: T) {
+  return (value: string) => {
+    try {
+      const parsed = value
+        .trim()
+        .split(" ")
+        .reduce((prev, curr) => {
+          const [name, value] = curr.split(":");
+          if (!value || !name || !(name in schema)) return prev;
+          // Use the parse method from the nuqs Parser
+          const parsedValue = schema[name].parse(value);
+          // Nuqs parsers return the parsed value or null for invalid inputs
+          if (parsedValue !== null) {
+            prev[name] = parsedValue;
+          }
+          return prev;
+        }, {} as Record<string, any>);
+
+      return { success: true, data: parsed };
+    } catch (error) {
+      return { success: false, error };
+    }
+  };
 }
 
 // export function serialize<T extends z.AnyZodObject>(schema: T) {
